@@ -33,6 +33,7 @@ from tempfile import NamedTemporaryFile
 from collections import defaultdict
 
 import logzero
+import redis
 
 from klein import Klein, resource
 from logzero import logger
@@ -88,6 +89,8 @@ if not API_AUTH_TOKEN:
         API_AUTH_TOKEN = "test-token"
     else:
         raise Exception("No IMUSIFY_API_AUTH_TOKEN environment variable found")
+
+redis_cache = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 # Setup the smart contract
 smart_contract = ImuSmartContract(CONTRACT_HASH, WALLET_FILE, WALLET_PWD)
@@ -175,9 +178,9 @@ def imu_get_balance(request, address):
     updated_at = int(r_updated_at) if r_updated_at is not None else r_updated_at
     invoked_at = int(r_invoked_at) if r_invoked_at is not None else r_invoked_at
 
-    logger.debug("balance: %s (%s)" % (balance, type(balance)))
-    logger.debug("updated_at: %s (%s)" % (updated_at, type(updated_at)))
-    logger.debug("invoked_at: %s (%s)" % (invoked_at, type(invoked_at)))
+    logger.info("balance: %s (%s)" % (balance, type(balance)))
+    logger.info("updated_at: %s (%s)" % (updated_at, type(updated_at)))
+    logger.info("invoked_at: %s (%s)" % (invoked_at, type(invoked_at)))
     seconds_since = int(time.time()) - invoked_at if invoked_at else None
     logger.info("$IMU balance of address '%s': %s (%s sec ago)" % (address, balance, seconds_since))
 
@@ -267,8 +270,8 @@ if __name__ == "__main__":
     settings.setup(args.config)
 
     logger.info("Starting api.py")
-    logger.debug("Config: %s", args.config)
-    logger.debug("Network: %s", settings.net_name)
+    logger.info("Config: %s", args.config)
+    logger.info("Network: %s", settings.net_name)
 
     # Enable Twisted logging (see also http://twistedmatrix.com/documents/12.0.0/core/howto/logging.html)
     # log.startLogging(sys.stdout)
